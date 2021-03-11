@@ -4,7 +4,7 @@ echo "SBSFU_UPDATE started"
 SCRIPT=$(readlink -f $0)
 # Absolute path this script
 SCRIPTPATH=`dirname $SCRIPT`
-PATH="/C/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
+PATH="~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
 stm32programmercli="STM32_Programmer_CLI"
 connect_no_reset="-c port=SWD mode=UR"
 connect="-c port=SWD mode=UR --hardRst"

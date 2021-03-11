@@ -1,6 +1,6 @@
 #!/bin/bash - 
 echo "regression script started"
-PATH="/C/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
+PATH="~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
 stm32programmercli="STM32_Programmer_CLI"
 secbootadd0=0x180052
 connect="-c port=SWD mode=UR --hardRst"

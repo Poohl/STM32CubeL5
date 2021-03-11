@@ -8,7 +8,7 @@ hdp_end=34
 wrp_bank2_start=116
 wrp_bank2_end=127
 echo "hardening script started"
-PATH="/C/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
+PATH="~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
 stm32programmercli="STM32_Programmer_CLI"
 bank2_secure="-ob SECWM2_PSTRT="$sec2_start" SECWM2_PEND="$sec2_end
 connect="-c port=SWD mode=UR --hardRst"

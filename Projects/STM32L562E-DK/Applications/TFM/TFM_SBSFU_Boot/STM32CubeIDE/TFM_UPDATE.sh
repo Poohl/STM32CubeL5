@@ -4,7 +4,7 @@ echo "TFM_UPDATE started"
 SCRIPT=$(readlink -f $0)
 # Absolute path this script
 SCRIPTPATH=`dirname $SCRIPT`
-PATH="/C/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
+PATH="~/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
 stm32programmercli="STM32_Programmer_CLI"
 external_loader="C:\PROGRA~1\STMicroelectronics\STM32Cube\STM32CubeProgrammer\bin\ExternalLoader\MX25LM51245G_STM32L562E-DK.stldr"
 connect_no_reset="-c port=SWD mode=UR -el $external_loader"
