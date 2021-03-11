@@ -1,0 +1,14 @@
+#general C stuff
+*.o
+*.elf
+*.bin
+
+# artifacts of STM32CubeIDE
+__pycache__/
+Release/
+Binary/
+.project
+.settings/
+
+# Part of the Trusted firmware build output
+image_macros_preprocessed_bl2.c
