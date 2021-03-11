@@ -24,8 +24,8 @@
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
-
-
+#include "exti_toggle.h"
+#include "piezo_buzzer.h"
 /* Private typedef -----------------------------------------------------------*/
 
 
@@ -41,6 +41,15 @@
 #define SECURE_IO_TOGGLE_DELAY           1000U   /* Toggle every second */
 
 
+#define USER_BUTTON_PORT C
+#define USER_BUTTON_PIN 13
+
+// Pin D12 = A6
+#define WINDOW_SENSOR_PIN 6
+#define WINDOW_SENSOR_PORT A
+
+#define LED_RED_GPIO_PIN GPIO_PIN_9
+#define LED_RED_GPIO_PORT GPIOA
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -53,14 +62,14 @@ static uint32_t SecureInitIODone = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void NonSecure_Init(void);
+static void releaseIO(void);
 static void MX_GPIO_Init(void);
 static void MX_GTZC_Init(void);
-static void  unsecure_sram1(uint32_t start, uint32_t end);
-
+static void unsecure_sram1(uint32_t start, uint32_t end);
 
 /* Private user code ---------------------------------------------------------*/
 
-
+void EXTI13_IRQHandler(void);
 /**
   * @brief  The application entry point.
   * @retval int
@@ -88,34 +97,12 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
   /* GTZC initialisation */
   MX_GTZC_Init();
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-
-
   SecureInitIODone = 1;
-
-  /* All IOs are by default allocated to secure */
-  /* Release them all to non-secure except PC.07 (LED1) kept as secure */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  HAL_GPIO_ConfigPinAttributes(GPIOA, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOB, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOC, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOD, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOE, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOF, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOG, GPIO_PIN_All, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(GPIOH, GPIO_PIN_All, GPIO_PIN_NSEC);
+  releaseIO();
 
   /* remove from NonSecure the PIN reserved for Secure */
   HAL_GPIO_ConfigPinAttributes(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SEC);
@@ -129,9 +116,15 @@ int main(void)
   /* running to toggle the secure IO and the following is commented:      */
   /* HAL_SuspendTick(); */
 
+  EXTI_TOGGLE_SETUP(USER_BUTTON_PORT, USER_BUTTON_PIN, SEC, 2, 2)
 
+  EXTI_TOGGLE_SETUP(WINDOW_SENSOR_PORT, WINDOW_SENSOR_PIN, SEC, 1, 1)
 
+  GPIO_OUTPUT_SETUP(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, GPIO_SPEED_FREQ_LOW, GPIO_PIN_SEC)
 
+  piezoBuzzer_setup();
+
+  piezoBuzzer_buzz(1, 1, 1000);
 
   /*************** Setup and jump to non-secure *******************************/
 
@@ -146,6 +139,26 @@ int main(void)
 
   }
 }
+
+void windowSensor_closing(void) {
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+}
+
+void windowSensor_opening(void) {
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+}
+
+EXTI_TOGGLE_IRQ_HANDLER(WINDOW_SENSOR_PIN, windowSensor_closing, windowSensor_opening)
+
+void userButton_down() {
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+}
+
+void userButton_up() {
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+}
+
+EXTI_TOGGLE_IRQ_HANDLER(USER_BUTTON_PIN, userButton_down, userButton_up)
 
 /**
   * @brief  Non-secure call function
@@ -167,6 +180,27 @@ static void NonSecure_Init(void)
 
   /* Start non-secure state software application */
   NonSecure_ResetHandler();
+}
+
+static void releaseIO(void) {
+  /* All IOs are by default allocated to secure */
+  /* Release them all to non-secure except PC.07 (LED1) kept as secure */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  HAL_GPIO_ConfigPinAttributes(GPIOA, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOB, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOC, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOD, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOE, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOF, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOG, GPIO_PIN_All, GPIO_PIN_NSEC);
+  HAL_GPIO_ConfigPinAttributes(GPIOH, GPIO_PIN_All, GPIO_PIN_NSEC);
 }
 
 /**
