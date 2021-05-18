@@ -27,7 +27,8 @@
 #include "common.h"
 #include "flash_layout.h"
 #include "secure_nsc.h"
-#include "secure_piezo_buzzer.h"
+#include "hal_gpio_wrapper_ns.h"
+
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
@@ -147,7 +148,8 @@ int main(int argc, char **argv)
   /* Register SecureError callback defined in non-secure and to be called by secure handler */
   SECURE_RegisterCallback(GTZC_ERROR_CB_ID, (void *)SecureError_Callback);
   /* test if an automatic test protection is launched */
-  secure_piezoBuzzer_setup();
+
+  NS_HAL_GPIO_Init(GPIOA, GPIO_PIN_5);
 
   if (TestNumber & TEST_PROTECTION_MASK)
   {
@@ -219,9 +221,14 @@ void FW_APP_Run(void)
           break;
 #endif /* !MCUBOOT_PRIMARY_ONLY */
         case '4':
-          SECURE_GPIO_Toggle();
-           secure_piezoBuzzer_buzz(1, 1, 500);
-           SECURE_GPIO_Toggle();
+          printf("%x\n", ((char*) GPIOA - (char*) SECURE_GPIO_Toggle()));
+          for (int i = 0; i < 1000; ++i) {
+            NS_HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_Delay(1);
+          }
+          //((GPIO_TypeDef *) (((0x40000000UL) + 0x02020000UL) + 0x0000UL))
+          //((GPIO_TypeDef *) (((0x40000000UL) + 0x02020000UL) + 0x0000UL))
+           //SECURE_GPIO_Toggle();
            break;
         default:
           printf("Invalid Number !\r");

@@ -38,6 +38,6 @@ typedef enum
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, void *func);
-void SECURE_GPIO_Toggle(void);
+void* SECURE_GPIO_Toggle(void);
 #endif /* SECURE_NSC_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

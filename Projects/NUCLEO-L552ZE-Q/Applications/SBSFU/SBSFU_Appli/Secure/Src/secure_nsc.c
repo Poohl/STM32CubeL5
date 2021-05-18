@@ -72,9 +72,10 @@ CMSE_NS_ENTRY void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, 
   * @param  func        pointer to non-secure function
   * @retval None
   */
-CMSE_NS_ENTRY void SECURE_GPIO_Toggle(void)
+CMSE_NS_ENTRY void* SECURE_GPIO_Toggle(void)
 {
   HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  return (void*) GPIOA;
 }
 /**
   * @}

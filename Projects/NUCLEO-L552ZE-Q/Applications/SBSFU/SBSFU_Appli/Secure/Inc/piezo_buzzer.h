@@ -1,4 +1,4 @@
-
+/*
 #ifndef PIEZO_BUZZER_H
 #define PIEZO_BUZZER_H
 
@@ -14,3 +14,4 @@ void piezoBuzzer_buzz(int high_ms, int low_ms, int count);
 void piezoBuzzer_highBuzz(int high_spin, int low_spin, int count);
 
 #endif
+*/

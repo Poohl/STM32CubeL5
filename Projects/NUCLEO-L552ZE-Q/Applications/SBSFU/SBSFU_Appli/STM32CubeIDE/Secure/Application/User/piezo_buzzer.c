@@ -1,4 +1,4 @@
-
+/*
 #include "piezo_buzzer.h"
 #include "exti_toggle.h"
 
@@ -25,3 +25,4 @@ void piezoBuzzer_highBuzz(int high_spin, int low_spin, int count) {
     for (int i = 0; i < low_spin; ++i) asm("mov r0,r0");
   }
 }
+*/

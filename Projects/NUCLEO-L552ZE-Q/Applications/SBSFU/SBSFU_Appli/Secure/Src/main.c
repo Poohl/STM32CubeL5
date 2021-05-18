@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "exti_toggle.h"
-#include "piezo_buzzer.h"
+#include "hal_gpio_wrapper_s.h"
 /* Private typedef -----------------------------------------------------------*/
 
 
@@ -47,6 +47,9 @@
 // Pin D12 = A6
 #define WINDOW_SENSOR_PIN 6
 #define WINDOW_SENSOR_PORT A
+
+#define PIEZO_BUZZER_GPIO_PORT GPIOA
+#define PIEZO_BUZZER_GPIO_PIN GPIO_PIN_5
 
 #define LED_RED_GPIO_PIN GPIO_PIN_9
 #define LED_RED_GPIO_PORT GPIOA
@@ -122,10 +125,12 @@ int main(void)
 
   GPIO_OUTPUT_SETUP(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, GPIO_SPEED_FREQ_LOW, GPIO_PIN_SEC)
 
-  piezoBuzzer_setup();
+  GPIO_OUTPUT_SETUP(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN, GPIO_SPEED_FREQ_LOW, GPIO_PIN_SEC)
 
-  piezoBuzzer_buzz(1, 1, 1000);
-
+  for (int i = 0; i < 1000; ++i) {
+    S_HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
+      HAL_Delay(1);
+  }
   /*************** Setup and jump to non-secure *******************************/
 
   NonSecure_Init();
@@ -166,8 +171,8 @@ EXTI_TOGGLE_IRQ_HANDLER(USER_BUTTON_PIN, userButton_down, userButton_up)
   *         to non-secure state
   * @retval None
   */
-static void NonSecure_Init(void)
-{
+static void NonSecure_Init(void) {
+
   funcptr_NS NonSecure_ResetHandler;
 
   SCB_NS->VTOR = VTOR_TABLE_NS_START_ADDR;
@@ -310,16 +315,7 @@ static void MX_GPIO_Init(void)
   */
 void HAL_SYSTICK_Callback(void)
 {
-  if (SecureTimingDelay != 0U)
-  {
-    SecureTimingDelay--;
-  }
-  else
-  {
-    /* Toggle PC.07 (LED1) */
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    SecureTimingDelay = SECURE_IO_TOGGLE_DELAY;
-  }
+  HAL_GPIO_WRAPPER_timer_callback();
 }
 
 /* USER CODE END 4 */
