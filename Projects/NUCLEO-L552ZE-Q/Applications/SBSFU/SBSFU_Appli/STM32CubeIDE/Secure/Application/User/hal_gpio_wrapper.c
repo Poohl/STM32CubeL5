@@ -5,7 +5,9 @@
  *      Author: paul
  */
 
-
+/* used for state indication */
+#define LED_BLUE_GPIO_PIN GPIO_PIN_7
+#define LED_BLUE_GPIO_PORT GPIOB
 
 #include "stm32l5xx_hal.h"
 #include "main.h"
@@ -53,7 +55,6 @@ CMSE_NS_ENTRY void NS_HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
     // not regarding the correct pin. just ignore...
   }
-  //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 }
 
 void S_HAL_GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_InitTypeDef* GPIO_InitStruct) {
@@ -89,7 +90,7 @@ void HAL_GPIO_WRAPPER_timer_callback() {
   if (locked_for_secure > 0) {
     --locked_for_secure;
   }
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, locked_for_secure ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_BLUE_GPIO_PORT, LED_BLUE_GPIO_PIN, locked_for_secure ? GPIO_PIN_SET : GPIO_PIN_RESET);
   /*total_flips += flip_counters[current_flip];
   current_flip = (current_flip + 1) % 100;
   total_flips -= flip_counters[current_flip];

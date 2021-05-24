@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 #include "exti_toggle.h"
 #include "hal_gpio_wrapper_s.h"
+#include "hal_exti_wrapper_s.h"
 /* Private typedef -----------------------------------------------------------*/
 
 
@@ -43,16 +44,25 @@
 
 #define USER_BUTTON_PORT C
 #define USER_BUTTON_PIN 13
+#define USER_BUTTON_GPIO_PIN GPIO_PIN_13
 
 // Pin D12 = A6
 #define WINDOW_SENSOR_PIN 6
 #define WINDOW_SENSOR_PORT A
+#define WINDOW_SENSOR_GPIO_PIN GPIO_PIN_6
+#define WINDOW_SENSOR_GPIO_PORT GPIOA
 
 #define PIEZO_BUZZER_GPIO_PORT GPIOA
 #define PIEZO_BUZZER_GPIO_PIN GPIO_PIN_5
 
 #define LED_RED_GPIO_PIN GPIO_PIN_9
 #define LED_RED_GPIO_PORT GPIOA
+
+#define LED_BLUE_GPIO_PIN GPIO_PIN_7
+#define LED_BLUE_GPIO_PORT GPIOB
+
+#define LED_GREEN_GPIO_PIN GPIO_PIN_7
+#define LED_GREEN_GPIO_PORT GPIOC
 
 /* Private macro -------------------------------------------------------------*/
 
@@ -72,7 +82,6 @@ static void unsecure_sram1(uint32_t start, uint32_t end);
 
 /* Private user code ---------------------------------------------------------*/
 
-void EXTI13_IRQHandler(void);
 /**
   * @brief  The application entry point.
   * @retval int
@@ -134,7 +143,6 @@ int main(void)
   /*************** Setup and jump to non-secure *******************************/
 
   NonSecure_Init();
-
   /* Non-secure software does not return, this code is not executed */
 
   /* Infinite loop */
@@ -145,25 +153,41 @@ int main(void)
   }
 }
 
-void windowSensor_closing(void) {
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+static uint32_t btn_down_start = 0;
+static char alarm_level = 0;
+
+void S_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+  HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+  switch (GPIO_Pin) {
+  case WINDOW_SENSOR_PIN:
+    if (alarm_level >= 1)
+       alarm_level += 1;
+    break;
+  default:
+    break;
+  }
+  return;
 }
 
-void windowSensor_opening(void) {
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+void S_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
+  HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+  switch (GPIO_Pin) {
+    case USER_BUTTON_GPIO_PIN:
+      //btn_down_start = 1;//HAL_GetTick();
+      btn_down_start = HAL_GetTick();
+      break;
+    case WINDOW_SENSOR_GPIO_PIN:
+      if (alarm_level >= 1)
+         alarm_level += 1;
+      break;
+    default:
+      break;
+  }
 }
 
-EXTI_TOGGLE_IRQ_HANDLER(WINDOW_SENSOR_PIN, windowSensor_closing, windowSensor_opening)
-
-void userButton_down() {
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+void EXTI6_IRQHandler(void) {
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
 }
-
-void userButton_up() {
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
-}
-
-EXTI_TOGGLE_IRQ_HANDLER(USER_BUTTON_PIN, userButton_down, userButton_up)
 
 /**
   * @brief  Non-secure call function
@@ -316,6 +340,16 @@ static void MX_GPIO_Init(void)
 void HAL_SYSTICK_Callback(void)
 {
   HAL_GPIO_WRAPPER_timer_callback();
+  HAL_EXTI_WRAPPER_timer_callback();
+
+  if (btn_down_start && (HAL_GetTick() - btn_down_start > 1000)) {
+    btn_down_start = 0;
+    alarm_level = !alarm_level;
+  }
+  HAL_GPIO_WritePin(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, btn_down_start ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  if (alarm_level >= 2) {
+    HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
+  }
 }
 
 /* USER CODE END 4 */

@@ -28,6 +28,7 @@
 #include "flash_layout.h"
 #include "secure_nsc.h"
 #include "hal_gpio_wrapper_ns.h"
+#include "hal_exti_wrapper_ns.h"
 
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
@@ -73,6 +74,8 @@ void FW_APP_Run(void);
 void SecureFault_Callback(void);
 void SecureError_Callback(void);
 void Error_Handler(void);
+void NS_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin);
+void NS_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin);
 static void uart_putc(unsigned char c)
 {
   COM_Transmit(&c, 1, 1000U);
@@ -150,6 +153,7 @@ int main(int argc, char **argv)
   /* test if an automatic test protection is launched */
 
   NS_HAL_GPIO_Init(GPIOA, GPIO_PIN_5);
+  NS_HAL_GPIO_EXTI_setup(NS_HAL_GPIO_EXTI_Rising_Callback, NS_HAL_GPIO_EXTI_Falling_Callback);
 
   if (TestNumber & TEST_PROTECTION_MASK)
   {
@@ -167,6 +171,14 @@ int main(int argc, char **argv)
 
   while (1U)
   {}
+
+}
+
+void NS_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
+
+}
+
+void NS_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 
 }
 
@@ -221,7 +233,7 @@ void FW_APP_Run(void)
           break;
 #endif /* !MCUBOOT_PRIMARY_ONLY */
         case '4':
-          printf("%x\n", ((char*) GPIOA - (char*) SECURE_GPIO_Toggle()));
+          //printf("%x\n", ((char*) GPIOA - (char*) SECURE_GPIO_Toggle()));
           for (int i = 0; i < 1000; ++i) {
             NS_HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
             HAL_Delay(1);
