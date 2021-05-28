@@ -30,6 +30,28 @@
 #include "hal_gpio_wrapper_ns.h"
 #include "hal_exti_wrapper_ns.h"
 
+#define USER_BUTTON_PORT C
+#define USER_BUTTON_PIN 13
+#define USER_BUTTON_GPIO_PIN GPIO_PIN_13
+
+// Pin D12 = A6
+#define WINDOW_SENSOR_PIN 6
+#define WINDOW_SENSOR_PORT A
+#define WINDOW_SENSOR_GPIO_PIN GPIO_PIN_6
+#define WINDOW_SENSOR_GPIO_PORT GPIOA
+
+#define PIEZO_BUZZER_GPIO_PORT GPIOA
+#define PIEZO_BUZZER_GPIO_PIN GPIO_PIN_5
+
+#define LED_RED_GPIO_PIN GPIO_PIN_9
+#define LED_RED_GPIO_PORT GPIOA
+
+#define LED_BLUE_GPIO_PIN GPIO_PIN_7
+#define LED_BLUE_GPIO_PORT GPIOB
+
+#define LED_GREEN_GPIO_PIN GPIO_PIN_7
+#define LED_GREEN_GPIO_PORT GPIOC
+
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
@@ -120,6 +142,8 @@ int putchar(int ch)
 }
 #endif /*  __GNUC__ */
 
+volatile static unsigned int track = 1;
+
 /**
   * @brief  Main program
   * @param  None
@@ -152,7 +176,7 @@ int main(int argc, char **argv)
   SECURE_RegisterCallback(GTZC_ERROR_CB_ID, (void *)SecureError_Callback);
   /* test if an automatic test protection is launched */
 
-  NS_HAL_GPIO_Init(GPIOA, GPIO_PIN_5);
+  NS_HAL_GPIO_Init(GPIOA, NULL);
   NS_HAL_GPIO_EXTI_setup(NS_HAL_GPIO_EXTI_Rising_Callback, NS_HAL_GPIO_EXTI_Falling_Callback);
 
   if (TestNumber & TEST_PROTECTION_MASK)
@@ -175,11 +199,13 @@ int main(int argc, char **argv)
 }
 
 void NS_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
-
+  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+  //SECURE_GPIO_Toggle();
+  track = ((track) % 8) + 1;
 }
 
 void NS_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-
+  SECURE_GPIO_Toggle();
 }
 
 /**
@@ -196,6 +222,7 @@ void FW_APP_PrintMainMenu(void)
   printf("  Download a new Fw Image ------------------------------- 3\r\n\n");
 #endif /* !MCUBOOT_PRIMARY_ONLY */
   printf("  Buzz for a sec ---------------------------------------- 4\r\n\n");
+  printf("  Run the player -----------------------------------------5\r\n");
   printf("  Selection :\r\n\n");
 }
 
@@ -242,6 +269,16 @@ void FW_APP_Run(void)
           //((GPIO_TypeDef *) (((0x40000000UL) + 0x02020000UL) + 0x0000UL))
            //SECURE_GPIO_Toggle();
            break;
+        case '5':
+          for (int i = 0; i < 10000; i += track) {
+            HAL_Delay(track);
+            NS_HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+          }
+          track = ((track) % 8) + 1;
+          break;
+        case '6':
+          HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+          break;
         default:
           printf("Invalid Number !\r");
           break;
@@ -288,6 +325,7 @@ void SecureError_Callback(void)
 void Error_Handler(void)
 {
   NVIC_SystemReset();
+  while(1);
 }
 
 #ifdef USE_FULL_ASSERT

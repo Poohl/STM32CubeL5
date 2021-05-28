@@ -66,6 +66,10 @@ CMSE_NS_ENTRY void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, 
   }
 }
 
+
+#define LED_GREEN_GPIO_PIN GPIO_PIN_7
+#define LED_GREEN_GPIO_PORT GPIOC
+
 /**
   * @brief  Secure registration of non-secure callback.
   * @param  CallbackId  callback identifier
@@ -74,7 +78,8 @@ CMSE_NS_ENTRY void SECURE_RegisterCallback(SECURE_CallbackIDTypeDef CallbackId, 
   */
 CMSE_NS_ENTRY void* SECURE_GPIO_Toggle(void)
 {
-  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  //HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
   return (void*) GPIOA;
 }
 /**

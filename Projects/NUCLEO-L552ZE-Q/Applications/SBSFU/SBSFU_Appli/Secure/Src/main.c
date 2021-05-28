@@ -117,7 +117,7 @@ int main(void)
   releaseIO();
 
   /* remove from NonSecure the PIN reserved for Secure */
-  HAL_GPIO_ConfigPinAttributes(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SEC);
+  HAL_GPIO_ConfigPinAttributes(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_NSEC);
   HAL_GPIO_ConfigPinAttributes(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SEC);
   /* Leave the GPIO clocks enabled to let non-secure having I/Os control */
 
@@ -157,8 +157,12 @@ static uint32_t btn_down_start = 0;
 static char alarm_level = 0;
 
 void S_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-  HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
   switch (GPIO_Pin) {
+  case USER_BUTTON_GPIO_PIN:
+        //btn_down_start = 1;//HAL_GetTick();
+        btn_down_start = 0;
+        break;
   case WINDOW_SENSOR_PIN:
     if (alarm_level >= 1)
        alarm_level += 1;
@@ -170,7 +174,7 @@ void S_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 }
 
 void S_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
-  HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
+  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
   switch (GPIO_Pin) {
     case USER_BUTTON_GPIO_PIN:
       //btn_down_start = 1;//HAL_GetTick();
@@ -339,6 +343,9 @@ static void MX_GPIO_Init(void)
   */
 void HAL_SYSTICK_Callback(void)
 {
+  if (alarm_level >= 2) {
+    S_HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
+  }
   HAL_GPIO_WRAPPER_timer_callback();
   HAL_EXTI_WRAPPER_timer_callback();
 
@@ -346,10 +353,7 @@ void HAL_SYSTICK_Callback(void)
     btn_down_start = 0;
     alarm_level = !alarm_level;
   }
-  HAL_GPIO_WritePin(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, btn_down_start ? GPIO_PIN_SET : GPIO_PIN_RESET);
-  if (alarm_level >= 2) {
-    HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
-  }
+  HAL_GPIO_WritePin(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, alarm_level ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 /* USER CODE END 4 */
@@ -367,7 +371,7 @@ void Error_Handler(void)
     MX_GPIO_Init();
   }
   /* LED1 on */
-  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
 
   /* Infinite loop */
   while (1)
