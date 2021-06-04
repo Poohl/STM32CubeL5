@@ -43,12 +43,6 @@
 #define PIEZO_BUZZER_GPIO_PORT GPIOA
 #define PIEZO_BUZZER_GPIO_PIN GPIO_PIN_5
 
-#define LED_RED_GPIO_PIN GPIO_PIN_9
-#define LED_RED_GPIO_PORT GPIOA
-
-#define LED_BLUE_GPIO_PIN GPIO_PIN_7
-#define LED_BLUE_GPIO_PORT GPIOB
-
 #define LED_GREEN_GPIO_PIN GPIO_PIN_7
 #define LED_GREEN_GPIO_PORT GPIOC
 
@@ -262,8 +256,11 @@ void FW_APP_Run(void)
         case '4':
           //printf("%x\n", ((char*) GPIOA - (char*) SECURE_GPIO_Toggle()));
           for (int i = 0; i < 1000; ++i) {
+            uint32_t last = HAL_GetTick();
+            uint32_t current;
+            for (current = last; current <= last; current=HAL_GetTick());
             NS_HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-            HAL_Delay(1);
+            last = current;
           }
           //((GPIO_TypeDef *) (((0x40000000UL) + 0x02020000UL) + 0x0000UL))
           //((GPIO_TypeDef *) (((0x40000000UL) + 0x02020000UL) + 0x0000UL))
