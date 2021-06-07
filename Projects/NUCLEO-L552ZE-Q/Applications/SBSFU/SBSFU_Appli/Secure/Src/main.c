@@ -30,6 +30,7 @@
 /* Private typedef -----------------------------------------------------------*/
 
 
+
 /* Private define ------------------------------------------------------------*/
 
 
@@ -156,7 +157,9 @@ int main(void)
 static uint32_t btn_down_start = 0;
 static char alarm_level = 0;
 
-void S_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+//#define HAL_GPIO_EXTI_Falling_Callback S_HAL_GPIO_EXTI_Falling_Callback
+
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
   //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
   switch (GPIO_Pin) {
   case USER_BUTTON_GPIO_PIN:
@@ -173,7 +176,9 @@ void S_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
   return;
 }
 
-void S_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
+//#define HAL_GPIO_EXTI_Rising_Callback S_HAL_GPIO_EXTI_Rising_Callback
+
+void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
   //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
   switch (GPIO_Pin) {
     case USER_BUTTON_GPIO_PIN:
@@ -344,7 +349,7 @@ static void MX_GPIO_Init(void)
 void HAL_SYSTICK_Callback(void)
 {
   if (alarm_level >= 2) {
-    S_HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
+    HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
   }
   HAL_GPIO_WRAPPER_timer_callback();
   HAL_EXTI_WRAPPER_timer_callback();

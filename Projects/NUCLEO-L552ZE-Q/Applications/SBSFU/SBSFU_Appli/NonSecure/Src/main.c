@@ -27,7 +27,8 @@
 #include "common.h"
 #include "flash_layout.h"
 #include "secure_nsc.h"
-#include "hal_gpio_wrapper_ns.h"
+
+#include "nsw_hal_gpio_wrapper.h"
 #include "hal_exti_wrapper_ns.h"
 
 #define USER_BUTTON_PORT C
@@ -170,7 +171,7 @@ int main(int argc, char **argv)
   SECURE_RegisterCallback(GTZC_ERROR_CB_ID, (void *)SecureError_Callback);
   /* test if an automatic test protection is launched */
 
-  NS_HAL_GPIO_Init(GPIOA, NULL);
+  //HAL_GPIO_Init(GPIOA, NULL);
   NS_HAL_GPIO_EXTI_setup(NS_HAL_GPIO_EXTI_Rising_Callback, NS_HAL_GPIO_EXTI_Falling_Callback);
 
   if (TestNumber & TEST_PROTECTION_MASK)

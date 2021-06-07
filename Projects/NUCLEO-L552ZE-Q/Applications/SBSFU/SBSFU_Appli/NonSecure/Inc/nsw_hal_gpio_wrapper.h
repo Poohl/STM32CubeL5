@@ -10,7 +10,8 @@ void NSW_HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState
 
 void NSW_HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
 
-#define WRAPPER
+#endif
+
 #ifndef WRAPPER
 
 #define HAL_GPIO_Init NSW_HAL_GPIO_Init
@@ -18,8 +19,5 @@ void NSW_HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
 #define HAL_GPIO_WritePin NSW_HAL_GPIO_WritePin
 
 #define HAL_GPIO_TogglePin NSW_HAL_GPIO_TogglePin
-
-#undef WRAPPER
-#endif
 
 #endif

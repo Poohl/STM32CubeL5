@@ -12,6 +12,7 @@
 #include "stm32l5xx_hal.h"
 #include "main.h"
 
+#define WRAPPER
 #include "hal_gpio_wrapper_s.h"
 #include "hal_gpio_wrapper_ns.h"
 

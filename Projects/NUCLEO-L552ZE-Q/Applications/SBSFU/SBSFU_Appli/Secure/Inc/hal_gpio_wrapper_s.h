@@ -9,7 +9,8 @@ void S_HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
 
 void HAL_GPIO_WRAPPER_timer_callback();
 
-#define WRAPPER
+#endif
+
 #ifndef WRAPPER
 
 #define HAL_GPIO_Init S_HAL_GPIO_Init
@@ -17,8 +18,5 @@ void HAL_GPIO_WRAPPER_timer_callback();
 #define HAL_GPIO_WritePin S_HAL_GPIO_WritePin
 
 #define HAL_GPIO_TogglePin S_HAL_GPIO_TogglePin
-
-#undef WRAPPER
-#endif
 
 #endif
