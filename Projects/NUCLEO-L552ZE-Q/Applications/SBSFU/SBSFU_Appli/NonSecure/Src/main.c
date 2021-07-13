@@ -28,6 +28,7 @@
 #include "flash_layout.h"
 #include "secure_nsc.h"
 
+#include "player.h"
 #include "nsw_hal_gpio_wrapper.h"
 #include "hal_exti_wrapper_ns.h"
 
@@ -91,8 +92,6 @@ void FW_APP_Run(void);
 void SecureFault_Callback(void);
 void SecureError_Callback(void);
 void Error_Handler(void);
-void NS_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin);
-void NS_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin);
 static void uart_putc(unsigned char c)
 {
   COM_Transmit(&c, 1, 1000U);
@@ -137,7 +136,7 @@ int putchar(int ch)
 }
 #endif /*  __GNUC__ */
 
-volatile static unsigned int track = 1;
+
 
 /**
   * @brief  Main program
@@ -171,8 +170,8 @@ int main(int argc, char **argv)
   SECURE_RegisterCallback(GTZC_ERROR_CB_ID, (void *)SecureError_Callback);
   /* test if an automatic test protection is launched */
 
-  //HAL_GPIO_Init(GPIOA, NULL);
-  NS_HAL_GPIO_EXTI_setup(NS_HAL_GPIO_EXTI_Rising_Callback, NS_HAL_GPIO_EXTI_Falling_Callback);
+  NS_HAL_GPIO_EXTI_setup(HAL_GPIO_EXTI_Rising_Callback, HAL_GPIO_EXTI_Falling_Callback);
+  player_setup();
 
   if (TestNumber & TEST_PROTECTION_MASK)
   {
@@ -191,16 +190,6 @@ int main(int argc, char **argv)
   while (1U)
   {}
 
-}
-
-void NS_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
-  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
-  //SECURE_GPIO_Toggle();
-  track = ((track) % 8) + 1;
-}
-
-void NS_HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-  SECURE_GPIO_Toggle();
 }
 
 /**
@@ -268,12 +257,7 @@ void FW_APP_Run(void)
            //SECURE_GPIO_Toggle();
            break;
         case '5':
-          for (int i = 0; i < 10000; i += track) {
-            HAL_Delay(track);
-            NS_HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-          }
-          track = ((track) % 8) + 1;
-          break;
+          player_play();
         case '6':
           HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
           break;

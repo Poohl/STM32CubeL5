@@ -24,15 +24,18 @@
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
-#include "exti_toggle.h"
 #include "hal_gpio_wrapper_s.h"
 #include "hal_exti_wrapper_s.h"
+#include "hal_systick_wrapper.h"
+#include "alarm.h"
 /* Private typedef -----------------------------------------------------------*/
 
 
 
 /* Private define ------------------------------------------------------------*/
 
+#define LED_BLUE_GPIO_PIN GPIO_PIN_7
+#define LED_BLUE_GPIO_PORT GPIOB
 
 /* Non-secure Vector table to jump to (internal Flash Bank2 here)             */
 /* Caution: address must correspond to non-secure internal Flash where is     */
@@ -42,36 +45,12 @@
 
 #define SECURE_IO_TOGGLE_DELAY           1000U   /* Toggle every second */
 
-
-#define USER_BUTTON_PORT C
-#define USER_BUTTON_PIN 13
-#define USER_BUTTON_GPIO_PIN GPIO_PIN_13
-
-// Pin D12 = A6
-#define WINDOW_SENSOR_PIN 6
-#define WINDOW_SENSOR_PORT A
-#define WINDOW_SENSOR_GPIO_PIN GPIO_PIN_6
-#define WINDOW_SENSOR_GPIO_PORT GPIOA
-
-#define PIEZO_BUZZER_GPIO_PORT GPIOA
-#define PIEZO_BUZZER_GPIO_PIN GPIO_PIN_5
-
-#define LED_RED_GPIO_PIN GPIO_PIN_9
-#define LED_RED_GPIO_PORT GPIOA
-
-#define LED_BLUE_GPIO_PIN GPIO_PIN_7
-#define LED_BLUE_GPIO_PORT GPIOB
-
-#define LED_GREEN_GPIO_PIN GPIO_PIN_7
-#define LED_GREEN_GPIO_PORT GPIOC
-
 /* Private macro -------------------------------------------------------------*/
 
 
 /* Private variables ---------------------------------------------------------*/
 
 
-static uint32_t SecureTimingDelay = SECURE_IO_TOGGLE_DELAY;  /* Secure delay */
 static uint32_t SecureInitIODone = 0;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -82,6 +61,22 @@ static void MX_GTZC_Init(void);
 static void unsecure_sram1(uint32_t start, uint32_t end);
 
 /* Private user code ---------------------------------------------------------*/
+
+void secure_setup() {
+  // just general debug
+  HAL_GPIO_ConfigPinAttributes(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN, GPIO_PIN_NSEC);
+
+  // secure layer itself controls blue LED for debug
+  HAL_GPIO_ConfigPinAttributes(LED_BLUE_GPIO_PORT, LED_BLUE_GPIO_PIN, GPIO_PIN_SEC);
+
+  // Alarm
+  HAL_GPIO_ConfigPinAttributes(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, GPIO_PIN_SEC);
+  HAL_GPIO_ConfigPinAttributes(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN, GPIO_PIN_SEC);
+  HAL_GPIO_ConfigPinAttributes(USER_BUTTON_GPIO_PORT, USER_BUTTON_GPIO_PIN, GPIO_PIN_SEC);
+  HAL_EXTI_ConfigLineAttributes(USER_BUTTON_EXTI_LINE, EXTI_LINE_SEC);
+  HAL_GPIO_ConfigPinAttributes(WINDOW_SENSOR_GPIO_PORT, WINDOW_SENSOR_GPIO_PIN, GPIO_PIN_SEC);
+  HAL_EXTI_ConfigLineAttributes(WINDOW_SENSOR_EXTI_LINE, EXTI_LINE_SEC);
+}
 
 /**
   * @brief  The application entry point.
@@ -118,8 +113,6 @@ int main(void)
   releaseIO();
 
   /* remove from NonSecure the PIN reserved for Secure */
-  HAL_GPIO_ConfigPinAttributes(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_NSEC);
-  HAL_GPIO_ConfigPinAttributes(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SEC);
   /* Leave the GPIO clocks enabled to let non-secure having I/Os control */
 
   /* Secure SysTick should rather be suspended before calling non-secure  */
@@ -129,13 +122,8 @@ int main(void)
   /* running to toggle the secure IO and the following is commented:      */
   /* HAL_SuspendTick(); */
 
-  EXTI_TOGGLE_SETUP(USER_BUTTON_PORT, USER_BUTTON_PIN, SEC, 2, 2)
-
-  EXTI_TOGGLE_SETUP(WINDOW_SENSOR_PORT, WINDOW_SENSOR_PIN, SEC, 1, 1)
-
-  GPIO_OUTPUT_SETUP(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, GPIO_SPEED_FREQ_LOW, GPIO_PIN_SEC)
-
-  GPIO_OUTPUT_SETUP(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN, GPIO_SPEED_FREQ_LOW, GPIO_PIN_SEC)
+  secure_setup();
+  alarm_setup();
 
   for (int i = 0; i < 1000; ++i) {
     S_HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
@@ -152,50 +140,6 @@ int main(void)
   {
 
   }
-}
-
-static uint32_t btn_down_start = 0;
-static char alarm_level = 0;
-
-//#define HAL_GPIO_EXTI_Falling_Callback S_HAL_GPIO_EXTI_Falling_Callback
-
-void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
-  switch (GPIO_Pin) {
-  case USER_BUTTON_GPIO_PIN:
-        //btn_down_start = 1;//HAL_GetTick();
-        btn_down_start = 0;
-        break;
-  case WINDOW_SENSOR_PIN:
-    if (alarm_level >= 1)
-       alarm_level += 1;
-    break;
-  default:
-    break;
-  }
-  return;
-}
-
-//#define HAL_GPIO_EXTI_Rising_Callback S_HAL_GPIO_EXTI_Rising_Callback
-
-void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
-  //HAL_GPIO_TogglePin(LED_GREEN_GPIO_PORT, LED_GREEN_GPIO_PIN);
-  switch (GPIO_Pin) {
-    case USER_BUTTON_GPIO_PIN:
-      //btn_down_start = 1;//HAL_GetTick();
-      btn_down_start = HAL_GetTick();
-      break;
-    case WINDOW_SENSOR_GPIO_PIN:
-      if (alarm_level >= 1)
-         alarm_level += 1;
-      break;
-    default:
-      break;
-  }
-}
-
-void EXTI6_IRQHandler(void) {
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
 }
 
 /**
@@ -340,25 +284,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
 
 
-}
-
-/**
-  * @brief  SYSTICK callback.
-  * @retval None
-  */
-void HAL_SYSTICK_Callback(void)
-{
-  if (alarm_level >= 2) {
-    HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
-  }
-  HAL_GPIO_WRAPPER_timer_callback();
-  HAL_EXTI_WRAPPER_timer_callback();
-
-  if (btn_down_start && (HAL_GetTick() - btn_down_start > 1000)) {
-    btn_down_start = 0;
-    alarm_level = !alarm_level;
-  }
-  HAL_GPIO_WritePin(LED_RED_GPIO_PORT, LED_RED_GPIO_PIN, alarm_level ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 /* USER CODE END 4 */

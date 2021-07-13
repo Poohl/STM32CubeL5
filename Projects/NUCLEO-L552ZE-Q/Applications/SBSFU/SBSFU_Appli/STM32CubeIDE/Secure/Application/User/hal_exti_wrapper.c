@@ -4,8 +4,12 @@
  *  Created on: May 18, 2021
  *      Author: paul
  */
+#include "stm32l5xx_hal.h"
 #include "main.h"
 
+#define WRAPPER
+#include "hal_exti_wrapper_s.h"
+#include "hal_exti_wrapper_ns.h"
 
 
 #define LED_GREEN_GPIO_PIN GPIO_PIN_7
@@ -41,9 +45,9 @@ void __attribute__((weak)) S_HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
 }
 
 // setup to get hal working...
-void EXTI13_IRQHandler(void) {
+/*void EXTI13_IRQHandler(void) {
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
-}
+}*/
 
 uint32_t down_time;
 
