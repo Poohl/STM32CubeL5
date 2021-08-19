@@ -55,6 +55,8 @@ __asm("  .global __ARM_use_no_argv\n");
 
 #include "test_protections.h"
 #include "fw_update_app.h"
+#define WRAPPER
+#include "nsw_hal_gpio_wrapper.h"
 /** @defgroup  USER_APP  exported variable
    * @{
   */
@@ -205,8 +207,9 @@ void FW_APP_PrintMainMenu(void)
 #if !defined(MCUBOOT_PRIMARY_ONLY)
   printf("  Download a new Fw Image ------------------------------- 3\r\n\n");
 #endif /* !MCUBOOT_PRIMARY_ONLY */
-  printf("  Buzz for a sec ---------------------------------------- 4\r\n\n");
-  printf("  Run the player -----------------------------------------5\r\n");
+  printf("  ALARM!!! ---------------------------------------------- 4\r\n\n");
+  printf("  Run the player -----------------------------------------5\r\n\n");
+  printf("  Toggle green LED ---------------------------------------6\r\n");
   printf("  Selection :\r\n\n");
 }
 

@@ -125,9 +125,8 @@ int main(void)
   secure_setup();
   alarm_setup();
 
-  for (int i = 0; i < 1000; ++i) {
-    S_HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
-      HAL_Delay(1);
+  for (int i = 0; i < 100000; ++i) {
+    HAL_GPIO_TogglePin(PIEZO_BUZZER_GPIO_PORT, PIEZO_BUZZER_GPIO_PIN);
   }
   /*************** Setup and jump to non-secure *******************************/
 
